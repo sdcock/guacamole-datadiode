@@ -22,11 +22,7 @@ The code was tested on an MSI NUC running a Linux Fedora Workstation OS. It was 
 
 ## Prerequisites
 
-<<<<<<< Updated upstream
 *Configure network*: Both devices' IP addresses need to be set manually. In this case, the NUC's IP address was 192.168.50.1 (configured as gateway) and the laptop's IP address was 192.168.50.2. Apply these on the command line, replacing {eth-...} with your Ethernet interface name:
-=======
-**Configure network**: Both devices' IP addresses need to be set manually. In this case, the NUC's IP address was 192.168.50.1 (configured as gateway) and the laptop's IP address was 192.168.50.2. Apply these on the command line, replacing {eth-...} with your Ethernet interface name:
->>>>>>> Stashed changes
 
 ```
 # On the NUC
@@ -39,11 +35,7 @@ sudo ip link set dev {eth-laptop}
 ping 192.168.50.1
 ```
 
-<<<<<<< Updated upstream
 *Install Docker Compose*: Docker Compose needs to be installed on the NUC:
-=======
-**Install Docker Compose**: Docker Compose needs to be installed on the NUC:
->>>>>>> Stashed changes
 
 ```
 # 1. Add Docker's official repository (for most up-to-date packages):
@@ -62,20 +54,12 @@ sudo systemctl enable --now docker
 docker run hello-world
 ```
 
-<<<<<<< Updated upstream
 *Enable SSH*: The NUC needs to be accessible via SSH. Go to Settings > System > Secure Shell and enable it. One important detail: Guacamole 1.6.1 will connect over SSH using [an algorithm that is deprecated in OpenSSH](https://marc.info/?l=openbsd-tech&m=163028217802671&w=2), being `ssh-rsa`. The SSH handshake will therefore likely fail. If this happens, add a line to your SSHD config (`~/.ssh/config`), enabling the `ssh-rsa` algorithm:
-=======
-**Enable SSH**: The NUC needs to be accessible via SSH. Go to Settings > System > Secure Shell and enable it. One important detail: Guacamole 1.6.1 will connect over SSH using [an algorithm that is deprecated in OpenSSH](https://marc.info/?l=openbsd-tech&m=163028217802671&w=2), being `ssh-rsa`. The SSH handshake will therefore likely fail. If this happens, add a line to your SSHD config (`~/.ssh/config`), enabling the `ssh-rsa` algorithm:
->>>>>>> Stashed changes
 ```
 PubkeyAcceptedAlgorithms=+ssh-rsa
 ```
 
-<<<<<<< Updated upstream
 *Enable Remote Desktop*: The NUC needs to be accessible via RDP. RDP is built into Fedora Workstation. Go to Settings > System > Remote Desktop. Enable both Desktop Sharing and Remote Control. You will need the RDP credentials automatically generated below these settings.
-=======
-**Enable Remote Desktop**: The NUC needs to be accessible via RDP. RDP is built into Fedora Workstation. Go to Settings > System > Remote Desktop. Enable both Desktop Sharing and Remote Control. You will need the RDP credentials automatically generated below these settings.
->>>>>>> Stashed changes
 
 ## Install
 
@@ -115,16 +99,3 @@ Then, connect and try it out.
 ## Inspect traffic
 
 After the first Guacamole message was sent, the `guac-proxy` automatically generated a timestamped file under `logs/`. It will do this everytime the container is started.
-<<<<<<< Updated upstream
-=======
-
-## Extra guide: configure TLS encryption between Guacamole web server and guacd
-
-When running Guacamole web server and guacd on different machines, encryption should be enabled between the two. Guacamole has [native support for this](https://guacamole.apache.org/doc/gug/configuring-guacamole.html). This will encrypt all Guacamole traffic between Guacamole web server and guacd.
-
-**Note**: by enabling encryption, the proxy will not be able to decrypt traffic.
-
-[Source](https://stackoverflow.com/questions/63778531/enable-ssl-between-guacd-and-guacamole-web-server-tomcat)
-
-This repo created a certificate for TLS communication (inside `guacd-ssl`). Both Guacamole web server and guacd use this certificate for secure communication. To use it, uncomment the lines in `guacd.conf` which enable TLS on guacd. In `docker-compose.yml`, set `GUACD_SSL` to true. Then restart all containers. That's it.
->>>>>>> Stashed changes
