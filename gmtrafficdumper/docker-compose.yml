@@ -16,6 +16,13 @@ services:
     restart: unless-stopped
     networks:
       - guacnet
+<<<<<<< Updated upstream
+=======
+    volumes:
+      - ./guacd-ssl:/etc/guacamole/ssl:ro
+      - ./guacd.conf:/etc/guacamole/guacd.conf:ro
+
+>>>>>>> Stashed changes
 
   # Postgres can be used as an alternative to MySQL
   guacdb:
@@ -33,13 +40,22 @@ services:
       - guacnet
 
   guacamole:
+<<<<<<< Updated upstream
     image: guacamole/guacamole
+=======
+    build: ./gm-ssl
+>>>>>>> Stashed changes
     container_name: guacamole
     depends_on:
       - guac-proxy
       - guacd
       - guacdb
     environment:
+<<<<<<< Updated upstream
+=======
+      # true configures Guacamole web server to use TLS
+      GUACD_SSL: false
+>>>>>>> Stashed changes
       # Route traffic destined for guacd to the guac-proxy instead
       GUACD_HOSTNAME: guac-proxy
       GUACD_PORT: 4823
