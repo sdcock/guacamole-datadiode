@@ -12,7 +12,7 @@ std::string Multiplexer::Serialize(const BridgeMessage &message) {
     return out;
 }
 
-bool Multiplexer::TryCast(const char *buffer, size_t len, BridgeMessage &message) {
+bool Multiplexer::TryDeserialize(const char *buffer, size_t len, BridgeMessage &message) {
     // Buffer is null or not large enough
     if (buffer == nullptr || len < static_cast<size_t>(HEADER_SIZE))
         return false;

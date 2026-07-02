@@ -8,8 +8,8 @@
  */
 void test_rejects(const std::string &buffer, const std::string &why) {
     BridgeMessage msg;
-    if (Multiplexer::TryCast(buffer.data(), buffer.size(), msg)) {
-        std::cerr << "expected TryCast to reject: " << why << std::endl;
+    if (Multiplexer::TryDeserialize(buffer.data(), buffer.size(), msg)) {
+        std::cerr << "expected TryDeserialize to reject: " << why << std::endl;
         assert(false);
     }
 }
@@ -20,8 +20,8 @@ void test_rejects(const std::string &buffer, const std::string &why) {
 void test_accepts(const std::string &buffer, uint16_t channel,
                   ChannelAction action, const std::string &payload) {
     BridgeMessage msg;
-    if (!Multiplexer::TryCast(buffer.data(), buffer.size(), msg)) {
-        std::cerr << "expected TryCast to accept buffer of len "
+    if (!Multiplexer::TryDeserialize(buffer.data(), buffer.size(), msg)) {
+        std::cerr << "expected TryDeserialize to accept buffer of len "
                   << buffer.size() << std::endl;
         assert(false);
     }
@@ -43,7 +43,7 @@ std::string frame(uint16_t channel, uint8_t flags, const std::string &payload) {
 }
 
 /**
- * @brief Serialize then TryCast must reproduce the original message
+ * @brief Serialize then TryDeserialize must reproduce the original message
  */
 void test_round_trip() {
     BridgeMessage in;
@@ -55,7 +55,7 @@ void test_round_trip() {
     assert(wire.size() == Multiplexer::HEADER_SIZE + in.payload.size());
 
     BridgeMessage out;
-    assert(Multiplexer::TryCast(wire.data(), wire.size(), out));
+    assert(Multiplexer::TryDeserialize(wire.data(), wire.size(), out));
     assert(out.channel == in.channel);
     assert(out.action == in.action);
     assert(out.payload == in.payload);
@@ -71,7 +71,7 @@ void test_round_trip() {
 
         BridgeMessage parsed;
         assert(
-            Multiplexer::TryCast(ctrl_wire.data(), ctrl_wire.size(), parsed));
+            Multiplexer::TryDeserialize(ctrl_wire.data(), ctrl_wire.size(), parsed));
         assert(parsed.channel == 7);
         assert(parsed.action == action);
         assert(parsed.payload.empty());

@@ -189,7 +189,7 @@ int main(int argc, char *argv[]) {
 
         // Cannot read this datagram, its invalid
         BridgeMessage msg;
-        if (!Multiplexer::TryCast(buffer, received, msg)) {
+        if (!Multiplexer::TryDeserialize(buffer, received, msg)) {
             std::cerr << "guard: dropped malformed datagram (" << received
                       << " bytes)" << std::endl;
             continue;

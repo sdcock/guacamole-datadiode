@@ -88,5 +88,5 @@ class Multiplexer {
      *         buffer is too short, sets reserved bits, has an unknown action, or
      *         carries an oversized payload.
      */
-    static bool TryCast(const char *buffer, size_t len, BridgeMessage &message);
+    static bool TryDeserialize(const char *buffer, size_t len, BridgeMessage &message);
 };

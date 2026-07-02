@@ -16,7 +16,7 @@ std::thread UDPRecvHandler::Run(NetQueue &queue, UDPReceiver &udp_receiver) {
                 continue;
 
             BridgeMessage msg;
-            if (!Multiplexer::TryCast(buffer, received, msg)) {
+            if (!Multiplexer::TryDeserialize(buffer, received, msg)) {
                 std::cerr << "udp_recv_handler: dropped malformed datagram ("
                           << received << " bytes)" << std::endl;
                 continue;
