@@ -1,4 +1,5 @@
 #include "../include/handshake_forger.h"
+#include <cstdlib>
 #include <random>
 #include <string>
 #include <vector>
@@ -16,6 +17,82 @@ std::string instr(const std::vector<std::string> &elems) {
     }
     return s;
 }
+
+// "Waiting for approval..." rendered white on a transparent canvas, baked once
+// with PIL (Cantarell 40px). Painted OVER the grey waiting layer, so only the
+// glyphs show. Because gmlbroker draws the waiting screen straight to the
+// browser on the return path, this never crosses the guard — the opcode
+// allowlist and the 50-byte clipboard blob cap do not apply.
+constexpr int kWaitImgW = 454;
+constexpr int kWaitImgH = 79;
+const char *kWaitImgPngB64 =
+    "iVBORw0KGgoAAAANSUhEUgAAAcYAAABPCAYAAABxqmWNAAAOoUlEQVR42u2deZBVxRXGvxYGUHAn"
+    "wQVFBAFxSdxwQeKKJC6gBI1xSUgqGivBsgwqcQMUoxWjlopLFAJRrHIDFBA0BlFB3EATE5HFiCIi"
+    "IERRFEHEL3/cfpkz7X3z7pt57937hu9XNTV36Xte3+5z+/R6GhBCCCGEEEIIIYQQQgghhBBCCCGE"
+    "EEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBC"
+    "CCGEEEIIIYQQQgghRNVC8hCSd5OcTfJTkktJPkPyNyS3VwqJzfz7eIy1jFCKAM2VBKIJf/AtAAwH"
+    "cBmAZubWNgDaAzgWQCsAtyi1hBA5tkix0Pol63JxA2QcSXKO+ftjA+PyrInHzRV49+EkV5NcQXJQ"
+    "tcmvIkYAuNwYxZUAZgOYB2Cdv/aUigEhRFZq8+1IfmMM0tQGyLg9MK5rSNYUKaM1yQ1GxrFlfu/9"
+    "gzh/TXKnapFfRfq1L8mNPg02khwY3G9F8kR9iUJlsbpSM9NidM6tBDDHXDqqWKMGoG9wvi2AY4qU"
+    "cQyAFv54LYBZZX71XYLzZgDaVZH8auFi1A4VjHXO/TXQv/XOuWkqAoQQmTGMninmuDWAw4qo5XwP"
+    "QIeYW/2LjMMJ5vhvzrmNZX7nOQA+MefvA1hQz3uOJDnW/3UvtfwmzL7meLI+dSFEtTThvx90+11b"
+    "xLNXm+fmmeMVJLcoQs5C8+zACr13Z5JDSV5BctcCYVeZ+B1XavlNVK8cybUm3fbX1yaEulKrKVOW"
+    "mkx5sYjn5prnepLcZM8TyuhgnvmGZLsMpk/RhlE6xdZBhaurUkUIGUZUSVcqADxhjnuQ3CZBRu4K"
+    "4CB/+qZzbjai2YYosjvVdqPO8eOeQgghZBgzYxibATgaxU26edz/H98Aw9jHHE+VOgghhMiCYXwG"
+    "tWvKAOD4Ig3jJP9/IgD64z1IHlCg1dkMwHEyjEIIIZDBPu7Jpo97foGwW5Nc78N+QNKZey8lnchD"
+    "8nATdrmVExN2S5LnkLyL5JMk55P8guT7JGeQvJfkCaXq0yd5A5Pzp4aOGZhw04L1pcNIzvQTmb4k"
+    "+SbJh0gOasCSmtxkmJNJjiG5wLtlW0dyMckHcmtHfbgVPk5D0Ljx2CR0LTTzmeQfSL7qdWQDyZV+"
+    "fPtGkgcWmd+bcunnx0EvIPmcf+dPSb5IcnADv6Fy6ajVjZ1JXml0YwPJZSSnk7yQZJs0ZZc6nRuT"
+    "/yRPD3Tt4CLS/lHz3PC0yyORnmE8L1Ci9vWEHWDC3RncG2zuvVngN4eZsKPzhNmb5J0kP0lY0D5F"
+    "cu8qNIxfkezkC4HPC/zem0knN/nf2I/kKwne4wGSfc15aobRVw4eCRxQ5GM8yR2LyO+O3mPT4jzy"
+    "rinyncutoxtJ7kTyOl9Jqo9lJE9KS3ap0rkU+U+yxlTySPLWhPm5nan4byK5e9rlkUjPMO4SKOHP"
+    "6wk7zoTrHdzbI1CMLvXImW3CnZYnzMA8CrfWe9mJ432S2zbSMJ7rwzwWeOWZba7n/gaWwDDSeImh"
+    "MZZv+xp2yLr60tbIPybP85/5ZTKf1vNRN8Qw3u/faUoga3pMuj0Wt5SFZHeSS2Li81+Si3zNPOQd"
+    "kh0TpvMwn375OKLId66Ejq6ISYsFeYzZ1yTPTkN2KdK5lPkfVHBX+OGbQvl5vnlmWhbKI5GucbTL"
+    "L8blGxf0CkpfqNYUkDOknlrZ1z7MBpJb5wm3ra+dTfUK293OmiXZxtdKx4etn1IpYgPXMTbEMOZc"
+    "6l3pa6Y1JtxuvnvGLol5ob71oiR3N3lFXwu+zLdMbff3gSQnlsIwopHLNUhuH7Qw1pG8KKi115A8"
+    "0ReGltdJtkqYziT5IclrSPbwLZQuJPslKTxT0NFc62UkyW4mTHPvgnBUTMWpe6VlNzadS53/Xtdt"
+    "hb9PgvycZcKfmrXySFTeMA63Y355whxtwjyYJ8zlJswrecL0N2GeLhCvmoTxv7mI7uAsGsZpJHco"
+    "IPeq4B37JJS9lOR+BWT/Lmi1pmEYbSG8xBbUeca6Hwx+55KEBfaDhWrxRb5vuXX0LZKHFJB9hqls"
+    "kuTkSstubDqXI/9JPm3u31/g9/cM5j00z1p5JCpvGA8OMnLfmDC3mPs/ySNnr2DR/m4xYe4xYS4q"
+    "VeFkxgZI8swqM4wjEr6jdchwQ55w3YKa8ukJ4z09LcPoW7hfmWf6J3imVdDCWJ6nJRJWQLZI6Rsr"
+    "i46aZ+4Kvr1OlZTdmHQuV/4HcyLWktwq4byH67Oc19ByjYrxGoDlBZZt9PP/NwJ4EvHOyd8G8K/c"
+    "KYBTUf/C/qklcoq+EYCd8NPkdrTw7/iauZTP3dxpPu0B4BXn3KNJv+cUX68/gFxt/GXn3MQE6bEe"
+    "kbNym+cHFdJz59w3KeZfOXV0GIAvzLd3fIqyi03ncuX/JETbnQFAG1OGxXGO+Q7+ovJIhhHOOQZG"
+    "6vigVrMPgD396Qzn3Gf1iJsQFNJ1WpQA9vCni5xz/ynha1jn3S2bqM7Y9NoyT5ijzPHMKnkv2xqf"
+    "VaQj/C/N+eEZf8+y6ahzbhWAf5hLB1eD7HLmvzdQY82ls/O02o4A0NmfPuOce0flUXo0z1h8pgD4"
+    "ld2Gyux20S9mUX8+xgPITcf+Acm2zrnV+La3myeK7J7YDUBPAD0AdES0C/xOALbyf602A51JsvuI"
+    "7b5eWCXv1aEhcXbOfUNyAYCcQ4l2KQ9JpK2jCwEc6Y+/W0Wyy5n/owAM8S3dPiS/4w295WdBeJVH"
+    "Moz/ZzqA9T5D2yDahmpW4O2GKLCNkHPuLe8oYG9Ebub6AhiDBnajkuwL4BL/UTqpTUG2N8erqyTO"
+    "bRsR50WmYGydkkHMio4uKWMrpZyyy5b/zrnFJKcD6O3L3DMA3GnyrqW/lvvtx1UeyTBaBVpHcgaA"
+    "E0136iy/A30Pf22uc25ZAnETAFyF2u7UMX5G1zFJNyX2g/djANh1lR8i6h6cj2ivw48BfAZgA4Db"
+    "ABwitcLn5rhTlcT5C3PcuRGF6kcVNohZ09GdzfGqKpJd7vy/xxtGIOpOtc5JTjaVyfucc1+pPJJh"
+    "RIxTcWsYhwE4xdSMJiWUM94Yxt5+reKBviUKJNuUeIhRwhUAzgfwhB8PjVPcT6VSAKLJBnv5472r"
+    "KM65ArF7kc/ad3yvwvHOmo52LmNalFN2ufN/sv+NdgAOJ9nJjCPabtTRKo+gyTcJt6HqF7ObRqHW"
+    "5xuonSjS0hvbYrtR7VKOXzjnpuRTQlGHl8zxD+ubop7ROPdJGmeSnQHsYi7NqHC8M6OjJFv7ymeO"
+    "56pBdiXy31fCx5hLZ/nn2wL4kb820zm3QOWRDGOcAi0F8IZp0Z6E2hlj7zjn5hUhbkIwHbuPGad8"
+    "soDC7xAMpL+TUpJYxW9TJXplXVm1B/D7Kojz1GAZyhUJn7vJHD/vnFteQUNUKR09KqFHnosB7Gha"
+    "YC+kLDtr+T/afM+52alnonaZyKgqKI9yayS3qnS4zb3FGLYar0Pt7KrHi5QzPujHP9CMU65MME62"
+    "Pukej95tVAeUd3lE1pcC5Co3z6Hu1PpLSQ4okH7HBS2CNOI811y6pJBjApK/DnozrkHlx3IroaO9"
+    "AIyM88Rid6sBcKm5dJtzbkPKsjOV/865xQD+7k+7+h03zkXt0orxKeW1HdPcroDca31c1pKcUI8b"
+    "xJKGE1FiHZrHIW6vBsh6L0bO0ITPzgocGF9t3aZ5f45d8zgsHlIizzcjA3+jx6Xl+SbGMfKj9YQ7"
+    "IsYx+X0kDyDZwoTL7a6wKQO+UnsETttJcqzffqgm8OH5SBDudqTgWaRCOprjZZKn2BYeyV1JXhp4"
+    "jXnd5nGlZDc2ncuV/8Fv/DjwzpPjthTzekTgEH3LPOF6xeTb4HKHE2b2ld/3zLKqWAfLeXwGkuRB"
+    "CZ89IuZD2eTdos2PubeuDIaxQ4zn/Jf8LiMv+B0wXNYMow97QZ6te77yPjKXBPc3pWkYzc4mG2Pi"
+    "vL6eXR8ers+HZZkNYyV0NC4tFsXsjFFwp5Fyyi5FOpcj/wP5zb3ruJD9Uszro4LnFnq3mTPtDjT+"
+    "ew4Zm+e7L1k4daWaRbMxk2OmOOc2NUBc2D2xAsDrCePxIqJZYB8HadYeQDcALczao/NQuxaplGmx"
+    "xMfBzjA7DJH7qJ6IZtIdmtF8/DOAAT7NLTWIZvLt7mcbrwYwEMCzGYjzOERj0aFHpJYAugaLptcA"
+    "GAzgzAQznMsV30ro6B2oO1uyJaJZx+1i3J8d7px7NyOyM5f/zrmvUdcTDhC5oPt3WnntnHsegHVw"
+    "3gXRjNdeqOtSc26M28ZXY0SWOpwMI/J7pZnUQDkvA7DrHqcVM5PLOfcQIld0Q/34wHu+T/4jRBMA"
+    "hgLo4pwbDeCpcixod85N8oXFrYhmz63xhnIegLsD109ZM44TfdwH+fRb5tPvE0R+V68H0M05dx8i"
+    "Zww5vkwxzjO84T4LwEOIJjp87uO0xE8uGgSgo3PulrRnBlZAR9c4585DtAb4YUTr5TZ4PZznjVtP"
+    "59ypzrmPMiQ7q/k/KjAIozKQ1wMBXAhgDqI1nasQrfNebn57LoDfAvjAG+eRAO6NiWNJwwmBzbwL"
+    "fZHpUvmpUiTVvChn9692cxDQcg0hCheWDlHXao53lSpCCBlGsTnTBbX+L79A3e2thBBChlFsdlgn"
+    "AJPTmswihBAyjAIZ6EY9ErULnQngRqWKEEKGUTRFg9eT5BskryK5j98dwN5vS3IYomUauRmpNznn"
+    "/qnUE0JAu2uIJkhvAPv7vxEANpL8ANHU8o749mazjwG4UskmhFCLUTRV1qLuGssabxAPDYziOkTb"
+    "iw3Q2KIQQi1G0WRxzt1M8g4AfRE5W97TG8YdEC0gfhvRLifjKrkrhRBCCCGEEEIIIYQQQgghhBBC"
+    "CCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQggh"
+    "hBBCCCGEEEIIIYQQQgghxObK/wDWtzH464CqagAAAABJRU5ErkJggg==";
 
 // A v4-style UUID prefixed with '$', matching guacd's connection-id format
 // (e.g. "$79fce574-83ce-4418-a9e5-949b5c4e482b", 37 chars).
@@ -140,10 +217,8 @@ std::string HandshakeForger::CannedArgs() const {
 }
 
 std::string HandshakeForger::WaitingScreen() const {
-    // PROVISIONAL: paint the default layer a solid colour. The exact compositing
-    // mode and argument order are to be confirmed against the 1.6.0 client when
-    // this is wired into gmlbroker (slice 1b); here it is only unit-tested for
-    // well-formedness.
+    // Paint the default layer solid dark grey, then overlay the baked
+    // "Waiting for approval..." text image centred on it.
     std::string w = size_args.size() > 0 ? size_args[0] : "1024";
     std::string h = size_args.size() > 1 ? size_args[1] : "768";
 
@@ -151,6 +226,21 @@ std::string HandshakeForger::WaitingScreen() const {
     s += instr({"size", "0", w, h});                  // size default layer (0)
     s += instr({"rect", "0", "0", "0", w, h});        // full-layer rectangle
     s += instr({"cfill", "14", "0", "40", "40", "40", "255"}); // OVER, dark grey
+
+    // Overlay the text, centred. The PNG is transparent-backed white glyphs, so
+    // OVER (mode 14) paints only the lettering onto the grey. The image stream
+    // is opened (img), fed base64 in bounded blobs, then closed (end).
+    int wi = std::atoi(w.c_str());
+    int hi = std::atoi(h.c_str());
+    std::string x = std::to_string(wi > kWaitImgW ? (wi - kWaitImgW) / 2 : 0);
+    std::string y = std::to_string(hi > kWaitImgH ? (hi - kWaitImgH) / 2 : 0);
+    const std::string stream = "1";                    // ephemeral image stream
+    s += instr({"img", stream, "14", "0", "image/png", x, y});
+    std::string b64 = kWaitImgPngB64;
+    for (size_t off = 0; off < b64.size(); off += 4096)
+        s += instr({"blob", stream, b64.substr(off, 4096)});
+    s += instr({"end", stream});
+
     s += instr({"sync", "0"});                         // close the frame
     return s;
 }

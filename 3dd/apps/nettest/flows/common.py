@@ -62,8 +62,11 @@ def build_connect(values):
                   *[values.get(p, "") for p in _ARGS_ELEMS[2:]])
 
 
-# The forged waiting screen and gmlbroker's heartbeat only ever emit
-# size/rect/cfill/sync, so the first opcode outside that set on the return
-# stream means a real guacd session has taken over the channel.
-GUACD_DRAW_OPS = {"img", "blob", "cursor", "dispose", "copy", "name", "end"}
+# The forged screens (waiting + denied) and gmlbroker's heartbeat emit
+# size/rect/cfill/sync plus — for the "Waiting for approval..." text overlay —
+# img/blob/end. So those cannot mark a real guacd session; only draw ops the
+# forger never emits do. A live guacd SSH terminal reliably blits cached glyphs
+# (copy) and defines a cursor early, so the first of these on the return stream
+# means a real guacd session has taken over the channel.
+GUACD_DRAW_OPS = {"cursor", "dispose", "copy", "name"}
 ENTER_KEYSYM = "65293"  # X11 Return keysym; pressing it re-prompts the shell
